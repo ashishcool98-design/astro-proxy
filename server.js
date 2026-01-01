@@ -15,22 +15,51 @@ app.get("/", (req, res) => {
 
 app.post("/astro/planets", async (req, res) => {
   try {
+    const payload = {
+      year: req.body.year,
+      month: req.body.month,
+      date: req.body.date,
+      hours: req.body.hours,
+      minutes: req.body.minutes,
+      seconds: req.body.seconds,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
+      timezone: req.body.timezone,
+      config: {
+        observation_point: "topocentric",
+        ayanamsha: "lahiri"
+      }
+    };
+
     const response = await fetch(
-      `${ASTRO_API}/planets/extended`,
+      "https://json.freeastrologyapi.com/planets/extended",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": process.env.ASTRO_API_KEY
         },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify(payload)
       }
     );
 
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch planetary data" });
+    const rawText = await response.text();
+
+    if (!response.ok) {
+      return res.status(500).json({
+        error: "FreeAstrologyAPI error",
+        status: response.status,
+        response: rawText
+      });
+    }
+
+    res.json(JSON.parse(rawText));
+
+  } catch (err) {
+    res.status(500).json({
+      error: "Proxy exception",
+      message: err.message
+    });
   }
 });
 
