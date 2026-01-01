@@ -1,5 +1,5 @@
 const express = require("express");
-const fetch = require("node-fetch");
+const fetch = require("node-fetch"); // ✅ REQUIRED
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -32,7 +32,7 @@ app.post("/astro/planets", async (req, res) => {
     };
 
     const response = await fetch(
-      "https://json.freeastrologyapi.com/planets/extended",
+      `${ASTRO_API}/planets/extended`,
       {
         method: "POST",
         headers: {
@@ -43,44 +43,23 @@ app.post("/astro/planets", async (req, res) => {
       }
     );
 
-    const rawText = await response.text();
+    const text = await response.text();
 
     if (!response.ok) {
       return res.status(500).json({
         error: "FreeAstrologyAPI error",
         status: response.status,
-        response: rawText
+        response: text
       });
     }
 
-    res.json(JSON.parse(rawText));
+    res.json(JSON.parse(text));
 
   } catch (err) {
     res.status(500).json({
       error: "Proxy exception",
       message: err.message
     });
-  }
-});
-
-app.post("/astro/dasha", async (req, res) => {
-  try {
-    const response = await fetch(
-      `${ASTRO_API}/vimsottari/maha-dasas-and-antar-dasas`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.ASTRO_API_KEY
-        },
-        body: JSON.stringify(req.body)
-      }
-    );
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch dasha data" });
   }
 });
 
